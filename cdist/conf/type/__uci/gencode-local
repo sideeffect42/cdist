@@ -117,27 +117,45 @@ in
 			exit 0
 		fi
 
-		if test "$(wc -l "${__object:?}/parameter/value")" -gt 1
-		then
-			# "should" is a list
-			printf 'set_list %s\n' "${config}" >>"${__messages_out:?}"
+		# Determine type
+		type=$(cat "${__object:?}/parameter/type" 2>/dev/null)
+		case ${type}
+		in
+			(option|list) ;;
+			('')
+				# Guess type by the number of values
+				test "$(wc -l "${__object:?}/parameter/value")" -gt 1 \
+					 && type=list \
+					 || type=option
+				;;
+			(*)
+				printf 'Invalid --type: %s\n' "${type}" >&2
+				exit 1
+				;;
+		esac
 
-			if test "${state_is}" != 'absent'
-			then
-				uci_cmd delete "${config}"
-			fi
+		case ${type}
+		in
+			(list)
+				printf 'set_list %s\n' "${config}" >>"${__messages_out:?}"
 
-			while read -r value
-			do
-				uci_cmd add_list "${config}"="${value}"
-			done <"${__object:?}/parameter/value"
-		else
-			# "should" is a scalar
-			printf 'set %s\n' "${config}" >>"${__messages_out:?}"
+				if test "${state_is}" != 'absent'
+				then
+					uci_cmd delete "${config}"
+				fi
 
-			value=$(cat "${__object:?}/parameter/value")
-			uci_cmd set "${config}"="${value}"
-		fi
+				while read -r value
+				do
+					uci_cmd add_list "${config}"="${value}"
+				done <"${__object:?}/parameter/value"
+				;;
+			(option)
+				printf 'set %s\n' "${config}" >>"${__messages_out:?}"
+
+				value=$(cat "${__object:?}/parameter/value")
+				uci_cmd set "${config}"="${value}"
+				;;
+		esac
 		;;
 	(absent)
 		if in_list "${state_is}" 'absent'
