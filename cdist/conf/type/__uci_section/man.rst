@@ -28,15 +28,21 @@ None.
 
 OPTIONAL PARAMETERS
 -------------------
+list
+    An option that is part of a list and should be present in the section (as
+    part of a list).  Lists with multiple options can be expressed by using the
+    same ``<option>`` repeatedly.
+
+    The value to this parameter is a ``<option>=<value>`` string.
 match
     Allows to find a section to "replace" through one of its parameters.
+
     The value to this parameter is a ``<option>=<value>`` string.
 option
     An option that should be present in the section.
     This parameter can be used multiple times to specify multiple options.
-    The value to this parameter is a ``<option>=<value>`` string.
 
-    Lists can be expressed by repeatedly using the same key.
+    The value to this parameter is a ``<option>=<value>`` string.
 state
     ``present`` or ``absent``, defaults to ``present``.
 transaction
